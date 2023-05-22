@@ -3,6 +3,7 @@ const router = express.Router()
 
 // 新增，載入 controller
 const adminController = require('../../controllers/admin-controller')
+const categoryController = require('../../controllers/category-controller')
 const upload = require('../../middleware/multer')
 
 // 新增
@@ -14,6 +15,7 @@ router.delete('/restaurants/:id', adminController.deleteRestaurant)
 router.get('/restaurants', adminController.getRestaurants)
 router.post('/restaurants', upload.single('image'), adminController.postRestaurant)
 router.get('/users', adminController.getUsers)
+router.get('/categories', categoryController.getCategories)
 router.patch('/users/:id', adminController.patchUser)
 router.get('/', (req, res) => res.redirect('/admin/restaurants'))
 
