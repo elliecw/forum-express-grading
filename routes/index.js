@@ -5,6 +5,7 @@ const passport = require('../config/passport') // 引入 Passport，需要他幫
 // 新增，載入 controller
 const restController = require('../controllers/restaurant-controller')
 const userController = require('../controllers/user-controller')
+const commentController = require('../controllers/comment-controller')
 const { authenticated, authenticatedAdmin } = require('../middleware/auth')
 const { generalErrorHandler } = require('../middleware/error-handler')
 
@@ -19,7 +20,8 @@ router.get('/logout', userController.logout)
 router.get('/restaurants/:id/dashboard', authenticated, restController.getDashboard)
 router.get('/restaurants/:id', authenticated, restController.getRestaurant)
 router.get('/restaurants', authenticated, restController.getRestaurants) // 修改這行，新增 authenticated 參數
+router.post('/comments', authenticated, commentController.postComment)
 router.get('/', (req, res) => res.redirect('/restaurants'))
-router.use('/', generalErrorHandler) // 加入這行
+router.use('/', generalErrorHandler)
 
 module.exports = router
