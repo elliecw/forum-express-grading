@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs') // 載入 bcrypt
 const db = require('../models')
-const { User } = db
+const { User, Comment, Restaurant } = db
 const { localFileHandler } = require('../helpers/file-helpers')
 const userController = {
   signUpPage: (req, res) => {
@@ -40,12 +40,14 @@ const userController = {
   },
   getUser: (req, res, next) => {
     return User.findByPk(req.params.id, { // 去資料庫用 id 找一筆資料
-      raw: true, // 找到以後整理格式再回傳
-      nest: true
+      // raw: true, // 找到以後整理格式再回傳
+      // nest: true
+      include: { model: Comment, include: Restaurant } // 注意當項目變多時，需要改成用陣列: 拿到關聯的 Comment，再拿到 Comment 關聯的 Restaurant，要做兩次的查詢。
     })
       .then(user => {
-        // if (!user) throw new Error("User didn't exist!") //  如果找不到，回傳錯誤訊息，後面不執行
-        res.render('users/profile', { user })
+        if (!user) throw new Error("User didn't exist!") //  如果找不到，回傳錯誤訊息，後面不執行
+        // res.render('users/profile', { user })
+        return res.render('users/profile', { user: user.toJSON() }) // 查詢單筆User的評論資料
       })
       .catch(err => next(err))
   },
