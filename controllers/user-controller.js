@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs') // 載入 bcrypt
 const db = require('../models')
-const { User } = db
+const { User, Comment, Restaurant } = db
+const { localFileHandler } = require('../helpers/file-helpers')
 const userController = {
   signUpPage: (req, res) => {
     res.render('signup')
@@ -36,6 +37,54 @@ const userController = {
     req.flash('success_messages', '登出成功！')
     req.logout()
     res.redirect('/signin')
+  },
+  getUser: (req, res, next) => {
+    return User.findByPk(req.params.id, { // 去資料庫用 id 找一筆資料
+      // raw: true, // 找到以後整理格式再回傳
+      // nest: true
+      include: { model: Comment, include: Restaurant } // 注意當項目變多時，需要改成用陣列: 拿到關聯的 Comment，再拿到 Comment 關聯的 Restaurant，要做兩次的查詢。
+    })
+      .then(user => {
+        if (!user) throw new Error("User didn't exist!") //  如果找不到，回傳錯誤訊息，後面不執行
+        // res.render('users/profile', { user })
+        return res.render('users/profile', { user: user.toJSON() }) // 查詢單筆User的評論資料
+      })
+      .catch(err => next(err))
+  },
+  editUser: (req, res, next) => {
+    return User.findByPk(req.params.id, { // 去資料庫用 id 找一筆資料
+      raw: true, // 找到以後整理格式再回傳
+      nest: true
+    })
+      .then(user => {
+        if (!user) throw new Error("User didn't exist!") //  如果找不到，回傳錯誤訊息，後面不執行
+        res.render('users/edit', { user })
+      })
+      .catch(err => next(err))
+  },
+  putUser: (req, res, next) => {
+    const name = req.body.name
+    const userId = req.params.id
+    const { file } = req
+    if (!name) {
+      throw new Error('User name is required!')
+    }
+    return Promise.all([ // 非同步處理
+      User.findByPk(req.params.id), // 去資料庫查有沒有這間餐廳
+      localFileHandler(file) // 把取出的檔案傳給 file-helper 處理後
+    ])
+      .then(([user, filePath]) => { // 以上兩樣事都做完以後
+        if (!user) throw new Error("User didn't exist!")
+        return user.update({ // 修改這筆資料
+          name,
+          image: filePath || user.image // 如果 filePath 是 Truthy (使用者有上傳新照片) 就用 filePath，是 Falsy (使用者沒有上傳新照片) 就沿用原本資料庫內的值
+        })
+      })
+      .then(() => {
+        req.flash('success_messages', '使用者資料編輯成功')
+        res.redirect(`/users/${userId}`)
+      })
+      .catch(err => next(err))
   }
 }
 module.exports = userController

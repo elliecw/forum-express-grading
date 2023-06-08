@@ -1,0 +1,27 @@
+<div class="row" style="background-color: white;">
+  <div class="col-md-3">
+    <img class="img-responsive center-block" src="{{user.image}}"
+      style="width: 300px; height:300px; margin-bottom: 25px; transition: opacity 0.5s; opacity:0;"
+      onload="this.style.opacity=1;">
+    <br>
+  </div>
+  <div class="col-md-4 row justify-content-start">
+    <ul class="row list-unstyled ">
+      <li>
+        <strong>{{user.name}}</strong>
+        <p>{{user.email}}</p>
+        <a type="button" class="btn btn-primary" href="/users/{{user.id}}/edit">Edit</a>
+      </li>
+    </ul>
+  </div>
+</div>
+<div class="card mt-3">
+  <div class="card-header">{{user.Comments.length}}個已評論餐廳</div>
+  <div class="card-body">
+    {{#each user.Comments}}
+    <a class="text-decoration-none" href="/restaurants/{{this.Restaurant.id}}">
+      <img class="mx-2" src="{{this.Restaurant.image}}" style="max-width:80px;">
+    </a>
+    {{/each}}
+  </div>
+</div>
