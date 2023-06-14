@@ -98,6 +98,41 @@ const restaurantController = {
         })
       })
       .catch(err => next(err))
+  },
+  // getTopRestaurants: (req, res, next) => {
+  //   return Restaurant.findAll({
+  //     limit: 10,
+  //     include: [{ model: User, as: 'FavoritedUsers' }]
+  //   })
+  //     .then(restaurants => {
+  //       const result = restaurants
+  //         .map(restaurant => ({
+  //           ...restaurant.toJSON(),
+  //           favoritedCount: restaurant.FavoritedUsers.length,
+  //           description: restaurant.description.substring(0, 50),
+  //           isFavorited: req.user && req.user.FavoritedRestaurants.some(fr => fr.id === restaurant.id)
+  //         }))
+  //         .sort((a, b) => b.favoritedCount - a.favoritedCount)
+  //       res.render('top-restaurants', { restaurants: result })
+  //     })
+  //     .catch(err => next(err))
+  // },
+  getTopRestaurants: (req, res, next) => {
+    return Restaurant.findAll({ // 撈出所有 User 與 restaurants 資料
+      limit: 10,
+      include: [{ model: User, as: 'FavoritedUsers' }]
+    })
+      .then(restaurants => {
+        restaurants = restaurants.map(restaurant => ({ // 整理 restaurants 資料，把每個 restaurant 項目都拿出來處理一次，並把新陣列儲存在 users 裡
+          ...restaurant.toJSON(), // 整理格式
+          favoritedCount: restaurant.FavoritedUsers.length, // 計算收藏人數
+          description: restaurant.description.substring(0, 50),
+          isFavorited: req.user && req.user.FavoritedRestaurants.some(fr => fr.id === restaurant.id) // 判斷目前登入使用者是否已收藏該餐廳
+        }))
+        restaurants = restaurants.sort((a, b) => b.favoritedCount - a.favoritedCount)
+        res.render('top-restaurants', { restaurants })
+      })
+      .catch(err => next(err))
   }
 }
 module.exports = restaurantController
